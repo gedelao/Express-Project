@@ -20,17 +20,20 @@ app.get('/api/v1/characters', (req, res) => {
     res.json(data.characters)
 });
 
-// create http servers and handle requests with express app
-const server = http.createServer(app)
+// Allows us to load up episodes
+app.get('/api/v1/episodes', (req,res) => {
+    res.send(data.episodes)
+  })
 
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
-});
-
-
-// This is equivalent to a 404 message or error, if we add on a page that doesn't exist, it will display the message
-app.get('*', (req, res) => {
-    res.send('This page was not found, but you can stay and have a drink.')
+// Getting specific names using query param
+app.get('/name', (req, res) => {
+  const search = req.query.search;
+  if (search) {
+    const searchForName = data.episodes.filter((episode) => episode.name.toLowerCase() == (search.toLowerCase))
+    return res.json(searchForName) 
+  } else {
+    res.send(data.episodes)
+  }
 })
 
 
@@ -39,12 +42,44 @@ app.get('/api/v1/characters/:characterID', (req, res) => {
     const characterId = req.params.characterID
     let character = null
     for (let currentCharacter of data.characters) {
-        if (currentCharacter.characterID == characterId) {
+        if (currentCharacter.id == characterId) {
             character = currentCharacter
         }
     }
     if (character === null) {
-        res.status(404).json({ error: 'could not find the id: ' + characterId })
+        res.status(404).json({ error: 'could not find that character id: ' + characterId })
     }
     res.json(character)
+});
+
+// Here we are getting episodes of our Id's, similar to character id, if we do not find the specific Id, we will be prompted with a error
+app.get("/api/v1/episodes/:episodeID", (req, res) => {
+    const episodeID = req.params.episodeID;
+    let episode = null;
+    for (let currentEpisode of data.episodes) {
+      if (currentEpisode.id == episodeID) {
+        episode = currentEpisode;
+      }
+    }
+  
+    if (episode === null) {
+      res.status(404).json({ error: "Could not find that episode Id: " + episodeID });
+    } else {
+      res.json(episode);
+      return;
+    }
+    res.json(episode);
+  });
+
+
+  // This is equivalent to a 404 message or error, if we add on a page that doesn't exist, it will display the message
+  app.get('*', (req, res) => {
+      res.send('This page was not found, but you can stay and have a drink.')
+  })
+
+  // create http servers and handle requests with express app
+  const server = http.createServer(app)
+
+server.listen(port, hostname, () => {
+    console.log(`Server running at http://${hostname}:${port}/`);
 });
